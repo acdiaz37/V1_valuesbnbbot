@@ -74,5 +74,7 @@ if __name__ == '__main__':
         states={DELINPUT: [MessageHandler(Filters.text, del2)]},
         fallbacks=[]
     ))
+    print('en ejecucion')
     updater.start_polling()
     updater.idle()
+    
