@@ -1,15 +1,40 @@
 from telegram.ext import Updater, CommandHandler, ConversationHandler, MessageHandler, Filters
-from xpathvalues import getting_value
-from dbbot import countRows, insertContract, alldata, deleteRowNameContract
+import sqlite3 as sql
+import requests
+import lxml.html as html
 
 REGINPUT = 0
 DELINPUT = 0
+XPATH_EXT_VALUE_CONTRACT = '//div[@class="col-md-8"]/text()'
+headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 6.1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/41.0.2228.0 Safari/537.3'}
+
 
 def start(update, context):
    update.message.reply_text('''WELCOME ☺☺☺ \n\n
    /bnb PARA MOSTRAR CONTRATOS 💰\n
    /reg PARA REGISTRAR CONTRATOS📜 \n
    /del PARA BORRAR CONTRATOS🗑️ \n''')   
+
+def getting_value(contract):
+    try:
+        URL_CONTRACT = f'https://bscscan.com/address/{contract}'
+        response =  requests.get(URL_CONTRACT,headers=headers)
+        if response.status_code == 200:
+            home = response.content.decode('utf-8')
+            parsed = html.fromstring(home)
+            valueContract = parsed.xpath(XPATH_EXT_VALUE_CONTRACT)
+            try:
+                print (valueContract[2])
+                finalvalue = valueContract[2]
+                return finalvalue
+            except:
+                return ['','','error value']
+        else:
+            raise ValueError(f'Error {response.status_code}')
+    except ValueError as ve:
+        print (ve)
+        return ['','','error value']
+
 
 #FUNCION MOSTRAR CONTRATOS
 def bnb1(update, context):
@@ -50,9 +75,84 @@ def del2(update, context):
     update.message.reply_text('CONTRATO BORRADO 🗑️')
     return ConversationHandler.END
 
+def createDB():
+    conn = sql.connect("bnbvalues.db")
+    conn.commit()
+    conn.close()
+
+def createTable():
+    conn = sql.connect("bnbvalues.db")
+    cursor = conn.cursor()
+    cursor.execute(
+        """CREATE TABLE bnbcontracts(
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            nameContract TEXT NOT NULL,
+            contract TEXT NOT NULL
+        )
+        """
+        )
+    conn.commit()
+    conn.close()
+
+def insertContract(nameContract, contract):
+    conn = sql.connect("bnbvalues.db")
+    cursor = conn.cursor()
+    cursor.execute(f"""
+            INSERT INTO bnbcontracts(nameContract, contract) 
+            VALUES ('{nameContract}', '{contract}');
+        """
+        )
+    conn.commit()
+    conn.close() 
+
+def  countRows():
+    conn = sql.connect("bnbvalues.db")
+    cursor = conn.cursor()
+    cursor.execute(
+        """
+        SELECT COUNT(*) FROM bnbcontracts;
+        """
+        )
+    data = cursor.fetchall()
+    conn.commit()
+    conn.close()     
+    return data
+
+def alldata():
+    conn = sql.connect("bnbvalues.db")
+    cursor = conn.cursor()
+    cursor.execute(
+        """
+        SELECT * FROM bnbcontracts;
+        """
+        )
+    data = cursor.fetchall()
+    conn.commit()
+    conn.close() 
+    print(data)
+    return data
+
+def deleteRowNameContract(field):
+    try:
+        conn = sql.connect("bnbvalues.db")
+        cursor = conn.cursor()
+        cursor.execute(
+            f"""DELETE FROM bnbcontracts
+            WHERE nameContract = '{field}';
+            
+            """
+            )
+        conn.commit()
+        conn.close()
+        print ('deleted')
+        return 'OK'
+    except ValueError as ve:        
+        print ('error')
+        return ve
+
 if __name__ == '__main__':
     
-    updater = Updater(token='TOKEN', use_context=True)
+    updater = Updater(token='5063445798:AAHVaXcfoQkVsISoWe3Y_9IDlPuBZVK0Z3c', use_context=True)
     dp = updater.dispatcher
     #PATERN START
     dp.add_handler(CommandHandler('start',start))
