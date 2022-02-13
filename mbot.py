@@ -30,10 +30,10 @@ def getting_value(contract):
             except:
                 return ['','','error value']
         else:
-            raise ValueError(f'Error {response.status_code}')
+            return ['','','error no code 200']
     except ValueError as ve:
         print (ve)
-        return ['','','error value']
+        return ['','','error try catch']
 
 
 #FUNCION MOSTRAR CONTRATOS
