@@ -52,7 +52,7 @@ def del2(update, context):
 
 if __name__ == '__main__':
     
-    updater = Updater(token='5063445798:AAHVaXcfoQkVsISoWe3Y_9IDlPuBZVK0Z3c', use_context=True)
+    updater = Updater(token='TOKEN', use_context=True)
     dp = updater.dispatcher
     #PATERN START
     dp.add_handler(CommandHandler('start',start))
